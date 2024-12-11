@@ -24,15 +24,24 @@ connectDB(); // Connect to the database
 // Routes setup
 console.log('Setting up routes...');
 const userRoutes = require('./src/routes/userRoutes'); // Import user routes
-app.use('/api/users', userRoutes); // Use user routes
+const goalRoutes = require('./src/routes/goalRoutes'); // Import goal routes
 
-// Define the PORT and start the server
+app.use('/api/users', userRoutes); // Use user routes
+app.use('/api/goals', goalRoutes); // Use goal routes
+
+// Define the PORT
 const PORT = process.env.PORT || 5000;
 
-// Global error handling middleware for better debugging
+// Catch-all route for undefined endpoints
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Endpoint not found' });
+});
+
+// Global error handling middleware
 app.use((err, req, res, next) => {
   console.error('Global Error Handler:', err.stack);
   res.status(500).json({ message: 'Something went wrong on the server.', error: err.message });
 });
 
+// Start the server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

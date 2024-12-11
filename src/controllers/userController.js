@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Assuming User schema is defined
+const User = require('../models/User');
 
 // @desc    Register a new user
 // @route   POST /api/users/register
@@ -23,9 +23,15 @@ const registerUser = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    // Respond with success
-    res.status(201).json({ message: 'User registered successfully' });
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // Respond with success and token
+    res.status(201).json({ message: 'User registered successfully', token });
   } catch (error) {
+    console.error('Error in registerUser:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -57,6 +63,7 @@ const loginUser = async (req, res) => {
     // Respond with the token
     res.status(200).json({ token, name: user.name, email: user.email });
   } catch (error) {
+    console.error('Error in loginUser:', error.message);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
