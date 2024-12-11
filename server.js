@@ -14,7 +14,7 @@ const app = express();
 
 // Middleware setup
 console.log('Setting up middleware...');
-app.use(cors()); // Enable Cross-Origin Resource Sharing
+app.use(cors()); // Enable Cross-Origin Resource Sharing for all origins
 app.use(bodyParser.json()); // Parse incoming JSON requests
 
 // Connect to MongoDB
@@ -28,4 +28,11 @@ app.use('/api/users', userRoutes); // Use user routes
 
 // Define the PORT and start the server
 const PORT = process.env.PORT || 5000;
+
+// Global error handling middleware for better debugging
+app.use((err, req, res, next) => {
+  console.error('Global Error Handler:', err.stack);
+  res.status(500).json({ message: 'Something went wrong on the server.', error: err.message });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
