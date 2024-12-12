@@ -68,4 +68,39 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      // Update the user's details
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+
+      // Save updated user to the database
+      const updatedUser = await user.save();
+
+      // Generate a new JWT token
+      const token = jwt.sign({ id: updatedUser._id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+
+      // Respond with updated details and token
+      res.status(200).json({
+        token,
+        name: updatedUser.name,
+        email: updatedUser.email,
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error in updateProfile:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, updateProfile };
