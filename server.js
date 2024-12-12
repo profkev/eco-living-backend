@@ -2,39 +2,50 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const connectDB = require('./src/config/db'); // Import the database connection function
+const morgan = require('morgan'); // For request logging
+const connectDB = require('./src/config/db');
 
 // Load environment variables
-console.log('Loading environment variables...');
 dotenv.config();
+console.log('Loading environment variables...');
 
 // Initialize the app
-console.log('Initializing app...');
 const app = express();
+console.log('Initializing app...');
 
 // Middleware setup
-console.log('Setting up middleware...');
 app.use(cors()); // Enable Cross-Origin Resource Sharing for all origins
 app.use(bodyParser.json()); // Parse incoming JSON requests
+app.use(morgan('dev')); // Add request logging
 
 // Connect to MongoDB
-console.log('Connecting to MongoDB...');
-connectDB(); // Connect to the database
+(async () => {
+  try {
+    await connectDB();
+    console.log('Connected to MongoDB');
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1); // Exit the process with failure
+  }
+})();
 
-// Routes setup
+// Modular Routes setup
 console.log('Setting up routes...');
-const userRoutes = require('./src/routes/userRoutes'); // Import user routes
-const carbonLogRoutes = require('./src/routes/carbonLogRoutes');
-const recommendationRoutes = require('./src/routes/recommendationRoutes');
-const challengeRoutes = require('./src/routes/challengeRoutes');
-const goalRoutes = require('./src/routes/goalRoutes'); // Import goal routes
+const routes = [
+  { path: '/api/users', route: require('./src/routes/userRoutes') },
+  { path: '/api/goals', route: require('./src/routes/goalRoutes') },
+  { path: '/api/recommendations', route: require('./src/routes/recommendationRoutes') },
+  { path: '/api/bonus', route: require('./src/routes/bonusRoutes') },
+  { path: '/api/groups', route: require('./src/routes/communityGroupRoutes') },
+  { path: '/api/challenges', route: require('./src/routes/challengeRoutes') },
+  { path: '/api/feedback', route: require('./src/routes/feedbackRoutes') },
+  { path: '/api/carbon-logs', route: require('./src/routes/carbonLogRoutes') },
+];
 
-
-app.use('/api/users', userRoutes); // Use user routes
-app.use('/api/goals', goalRoutes); // Use goal routes
-app.use('/api/recommendations', recommendationRoutes);
-app.use('/api/challenges', challengeRoutes);
-app.use('/api/carbon-logs', carbonLogRoutes); // Use carbon log routes
+// Register routes
+routes.forEach(({ path, route }) => {
+  app.use(path, route);
+});
 
 // Catch-all route for undefined endpoints
 app.use((req, res, next) => {
@@ -44,7 +55,10 @@ app.use((req, res, next) => {
 // Global error handling middleware
 app.use((err, req, res, next) => {
   console.error('Global Error Handler:', err.stack);
-  res.status(500).json({ message: 'Something went wrong on the server.', error: err.message });
+  res.status(500).json({
+    message: 'Something went wrong on the server.',
+    error: err.message,
+  });
 });
 
 // Define the PORT
