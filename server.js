@@ -26,12 +26,14 @@ console.log('Setting up routes...');
 const userRoutes = require('./src/routes/userRoutes'); // Import user routes
 const carbonLogRoutes = require('./src/routes/carbonLogRoutes');
 const recommendationRoutes = require('./src/routes/recommendationRoutes');
+const challengeRoutes = require('./src/routes/challengeRoutes');
 const goalRoutes = require('./src/routes/goalRoutes'); // Import goal routes
 
 
 app.use('/api/users', userRoutes); // Use user routes
 app.use('/api/goals', goalRoutes); // Use goal routes
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/challenges', challengeRoutes);
 app.use('/api/carbon-logs', carbonLogRoutes); // Use carbon log routes
 
 // Catch-all route for undefined endpoints
